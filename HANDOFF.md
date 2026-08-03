@@ -42,18 +42,23 @@ Core positioning: **Livestreams transmit video. Same Sky transmits presence.**
   - clock-synced pulse countdown via `serverNow`;
   - stack readiness chips from `/api/health`;
   - local keepsake + sky bloom on completion.
-- V2 source and deck are on `main`. Confirm the live deployment revision under **Release History** before making further changes.
+- Feature pack is live on Sites production (shared sky, stack chips, and related UX).
+- Live revision IDs are recorded under **Release History**.
 
 ## Release History
 
-GitHub `main` (feature pack + docs polish):
+Current live Sites production (feature pack on V2):
 
 ```text
-source commit: ef56c64 (and follow-up docs commit on push)
-URL: https://github.com/vnmoorthy/same-sky
+source commit: 50661e3461c9877ed92810bf991381ef52f54809
+Sites version: appgprj_6a6fde2966cc8191b1eb4fd89ee55783~appgver_83b94340a5dc81919cbb361c7b4fa3f2
+deployment: appgdep_6a6fed33d9e88191b4792b3728097c78
+status: succeeded
+URL: https://same-sky-live.vnmoorthy.chatgpt.site
+health: ok, database true, media true, openai false, jambase false
 ```
 
-Current live Sites production (still V2 visual release until Sites redeploy):
+Prior Sites production (V2 visual release only):
 
 ```text
 source commit: 27c333712c32705023f70acff8be74c63129bf91
@@ -63,7 +68,7 @@ status: succeeded
 URL: https://same-sky-live.vnmoorthy.chatgpt.site
 ```
 
-**Pending:** save + deploy a new Sites version from the latest `main` commit via the Codex Apps Sites connector (`sites_save_site_version` → `sites_deploy_site_version`). Cursor does not expose those MCP tools. Packaged build artifact is ready after `npm run build` + `package-site.sh`.
+GitHub `main` tracks the same feature-pack source as the current live deploy (`50661e3` and any later docs-only follow-ups).
 
 ## Product Experience
 
@@ -281,7 +286,7 @@ Do not drift back toward generic SaaS styling.
 ## Definition of Done — Completed
 
 - [x] V2 visual changes committed and pushed.
-- [x] Sites production redeployed from the exact commit.
+- [x] Sites production redeployed from feature-pack commit `50661e3` (version `appgver_83b94340a5dc81919cbb361c7b4fa3f2`).
 - [x] Landing page visually checked at 1440px and 390px.
 - [x] GitHub README hero reflects the V2 deck cover.
 - [x] Deck remains exactly 10 slides and passes overflow checks.
