@@ -4,13 +4,20 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FESTIVAL_ARTISTS, STAGES } from "../lib/artists";
 import type { Artist, Postcard, SameSkySession, Senses } from "../lib/types";
 
-type Bridge = { token: string; session: SameSkySession };
+type Bridge = { token: string; session: SameSkySession; clockOffsetMs?: number };
 type ApiResult = { ok: boolean; error?: string; token?: string; session?: SameSkySession; serverNow?: number };
 type View = "landing" | "join" | "bridge" | "demo";
+type SkyPulse = { id: string; artistName: string; color: string; pulseAt: number; x: number; y: number };
+type HealthState = { ok: boolean; database?: boolean; media?: boolean; openai?: boolean; jambase?: boolean };
 
 const STORAGE_KEY = "same-sky-bridge-v1";
 const SIGNAL_TAGS = ["Bass in my chest", "Cool wind", "Mist in the air", "Crowd singing", "Ground vibrating", "A quiet pause"];
-const PULSE_COLORS = ["#ff7a61", "#8c7bff", "#55d6be", "#ffd166"];
+const PULSE_COLORS = ["#ff5e45", "#c8ff4a", "#55d6be", "#ffd166"];
+
+function withClock(bridge: Bridge, serverNow?: number): Bridge {
+  if (typeof serverNow !== "number") return bridge;
+  return { ...bridge, clockOffsetMs: serverNow - Date.now() };
+}
 
 async function api<T = ApiResult>(path: string, init?: RequestInit, timeout = 8_000): Promise<T> {
   const controller = new AbortController();
@@ -93,17 +100,80 @@ function AtmosphericArt({ compact = false }: { compact?: boolean }) {
   );
 }
 
+const SEED_SKY: SkyPulse[] = [
+  { id: "seed-1", artistName: "Lands End", color: "#ff5e45", pulseAt: 0, x: 22, y: 38 },
+  { id: "seed-2", artistName: "Sutro", color: "#c8ff4a", pulseAt: 0, x: 58, y: 24 },
+  { id: "seed-3", artistName: "Twin Peaks", color: "#55d6be", pulseAt: 0, x: 74, y: 62 },
+  { id: "seed-4", artistName: "Panhandle", color: "#ffd166", pulseAt: 0, x: 36, y: 71 },
+];
+
+function SkyField({ pulses, count, compact = false }: { pulses: SkyPulse[]; count: number; compact?: boolean }) {
+  const stars = pulses.length ? pulses : SEED_SKY;
+  return (
+    <div className={classNames("sky-field", compact && "compact")} role="img" aria-label={`${count || stars.length} anonymous pulses across today’s shared sky`}>
+      <div className="sky-field-glow" />
+      {stars.map((pulse, index) => (
+        <span
+          key={pulse.id}
+          className="sky-star"
+          style={{
+            left: `${pulse.x}%`,
+            top: `${pulse.y}%`,
+            background: pulse.color,
+            animationDelay: `${(index % 7) * 0.35}s`,
+            ["--star-scale" as string]: pulses.length ? 1 : 0.85,
+          }}
+          title={pulse.artistName}
+        />
+      ))}
+      <div className="sky-field-meta">
+        <strong>{count || "Ready"}</strong>
+        <span>{count ? "anonymous pulses in today’s sky" : "the first pulse can be yours"}</span>
+      </div>
+    </div>
+  );
+}
+
+function StackChips({ health }: { health: HealthState | null }) {
+  const chips = [
+    { label: "D1", on: health?.database },
+    { label: "R2", on: health?.media },
+    { label: "OpenAI", on: health?.openai },
+    { label: "JamBase", on: health?.jambase },
+  ];
+  return (
+    <div className="stack-chips" aria-label="Live stack readiness">
+      {chips.map((chip) => (
+        <span key={chip.label} className={classNames("stack-chip", chip.on ? "on" : "off")}>
+          <i />{chip.label}{chip.on ? " live" : " fallback"}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function Landing({ onHost, onGuest, onDemo, resume, onResume }: { onHost: () => void; onGuest: () => void; onDemo: () => void; resume: Bridge | null; onResume: () => void }) {
   const [privacy, setPrivacy] = useState(false);
   const [count, setCount] = useState(0);
+  const [pulses, setPulses] = useState<SkyPulse[]>([]);
+  const [health, setHealth] = useState<HealthState | null>(null);
   useEffect(() => {
-    api<{ count: number }>("/api/sky", undefined, 4_000).then((result) => setCount(result.count)).catch(() => undefined);
+    const load = () => {
+      api<{ count: number; pulses: SkyPulse[] }>("/api/sky", undefined, 4_000)
+        .then((result) => { setCount(result.count); setPulses(result.pulses ?? []); })
+        .catch(() => undefined);
+      api<HealthState>("/api/health", undefined, 4_000).then(setHealth).catch(() => undefined);
+    };
+    load();
+    const timer = window.setInterval(load, 12_000);
+    return () => window.clearInterval(timer);
   }, []);
   return (
     <main className="landing">
       <nav className="nav shell">
         <Logo />
         <div className="nav-actions">
+          <a href="#sky">Shared sky</a>
           <a href="#ritual">The ritual</a>
           <button className="text-button" onClick={() => setPrivacy(true)}>Privacy</button>
         </div>
@@ -112,8 +182,8 @@ function Landing({ onHost, onGuest, onDemo, resume, onResume }: { onHost: () => 
       <section className="hero shell">
         <div className="hero-copy">
           <p className="eyebrow"><span className="live-dot" /> OUTSIDE LANDS · PRIVATE RITUAL</p>
-          <p className="hero-brand">SAME SKY</p>
-          <h1>One set.<br /><em>Two skies.</em></h1>
+          <h1 className="hero-brand">SAME<br />SKY</h1>
+          <p className="hero-line">One set. <em>Two skies.</em></p>
           <p className="hero-lede">Livestreams transmit video. Same Sky transmits presence—one sensory postcard, one return pulse, eight seconds of shared light.</p>
           <div className="hero-actions">
             <button className="button primary" onClick={onHost}><Icon>↗</Icon>I’m at the festival</button>
@@ -126,20 +196,54 @@ function Landing({ onHost, onGuest, onDemo, resume, onResume }: { onHost: () => 
           )}
           <button className="demo-link" onClick={onDemo}><span className="play">▶</span> Judges: feel the full ritual in 30 seconds <span>→</span></button>
           <p className="trust-line">No account · No feed · Gone within 24 hours</p>
+          <StackChips health={health} />
         </div>
         <div className="hero-visual" aria-hidden="true">
           <AtmosphericArt />
+          <span className="hero-glow" />
         </div>
       </section>
 
+      <section id="sky" className="sky-section shell">
+        <div className="sky-copy">
+          <p className="eyebrow">TODAY’S SHARED SKY</p>
+          <h2>Private pulses leave<br /><em>one anonymous field.</em></h2>
+          <p>No names. No codes. No postcard text. Only color, timing, and the set that held the moment.</p>
+        </div>
+        <SkyField pulses={pulses} count={count} />
+      </section>
+
+      <section className="sets-section shell">
+        <p className="eyebrow">TONIGHT’S ANCHOR POINTS</p>
+        <h2>Choose a real set.<br /><em>Send a real feeling.</em></h2>
+        <div className="set-rail">
+          {FESTIVAL_ARTISTS.slice(0, 6).map((artist) => (
+            <article key={artist.id} className="set-pill">
+              <strong>{artist.name}</strong>
+              <span>{artist.day} · {artist.genre}</span>
+            </article>
+          ))}
+        </div>
+        <p className="sets-note">Artist search uses JamBase when configured, with a bundled festival preview as the demo-safe fallback. <a href="https://www.jambase.com" rel="nofollow noreferrer" target="_blank">Powered by JamBase</a></p>
+      </section>
+
       <section id="ritual" className="ritual shell">
-        <p className="eyebrow">THE RITUAL</p>
-        <h2>Livestreams carry the show.<br /><em>Same Sky carries presence.</em></h2>
+        <div className="ritual-head">
+          <p className="eyebrow">THE RITUAL</p>
+          <h2>Livestreams carry the show.<br /><em>Same Sky carries presence.</em></h2>
+        </div>
         <div className="steps">
           <article><span>01</span><div><h3>Catch what video misses</h3><p>One resized photo, a few firsthand words, and an optional on-device intensity estimate. No audio is saved.</p></div></article>
           <article><span>02</span><div><h3>Send one honest postcard</h3><p>OpenAI turns only those facts into accessible language. The person onsite reviews every word.</p></div></article>
           <article><span>03</span><div><h3>Feel one pulse return</h3><p>The viewer sends a single signal back. Both screens become the same light at the same time.</p></div></article>
         </div>
+      </section>
+
+      <section className="trust-grid shell">
+        <article><span>01</span><h3>Capability tokens</h3><p>The six-character code finds the bridge. Long random role tokens authorize every private action.</p></article>
+        <article><span>02</span><h3>Human approval gate</h3><p>AI never publishes. The onsite person reviews every sentence before anything crosses.</p></article>
+        <article><span>03</span><h3>Synchronized pulse</h3><p>Server timestamps keep both phones lit for the same eight seconds, even across clock skew.</p></article>
+        <article><span>04</span><h3>Delete or expire</h3><p>Either person can erase the bridge immediately. Otherwise it vanishes within 24 hours.</p></article>
       </section>
 
       <footer className="footer shell">
@@ -171,7 +275,7 @@ function JoinView({ initialCode, onBack, onJoined }: { initialCode: string; onBa
     try {
       const result = await api<ApiResult>("/api/sessions/join", { method: "POST", body: JSON.stringify({ code }) });
       if (!result.token || !result.session) throw new Error("The bridge did not open.");
-      onJoined({ token: result.token, session: result.session });
+      onJoined(withClock({ token: result.token, session: result.session }, result.serverNow));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "That bridge is not active.");
     } finally { setBusy(false); }
@@ -243,6 +347,7 @@ function AuthenticatedPhoto({ url, token, alt }: { url: string; token: string; a
 
 function PostcardCard({ postcard, session, token, sampleImage, compact = false }: { postcard: Postcard; session: SameSkySession; token: string; sampleImage?: string; compact?: boolean }) {
   const style = { "--card-a": postcard.palette[0], "--card-b": postcard.palette[1], "--card-c": postcard.palette[2] } as React.CSSProperties;
+  const senses = session.senses;
   return (
     <article className={classNames("postcard", compact && "compact")} style={style}>
       <div className="postcard-image">
@@ -253,8 +358,23 @@ function PostcardCard({ postcard, session, token, sampleImage, compact = false }
         <span className="card-kicker">FROM THE FIELD · RIGHT NOW</span>
         <h3>{postcard.title}</h3>
         <p>{postcard.body}</p>
-        <footer><span>{session.artist?.name ?? "Outside Lands"}</span><span>{session.stageName ?? "Golden Gate Park"}</span></footer>
-        <small>{postcard.signal}</small>
+        {session.observation && <p className="postcard-observation">“{session.observation}”</p>}
+        {senses && (
+          <div className="sensory-receipt" aria-label="Literal sensory receipt">
+            <div className="energy-meter"><span style={{ width: `${senses.energy}%` }} /><strong>{senses.energy}/100 energy</strong></div>
+            <div className="receipt-chips">
+              {senses.tags.map((tag) => <span key={tag}>{tag}</span>)}
+              {senses.air && <span>Air · {senses.air}</span>}
+              {senses.light && <span>Light · {senses.light}</span>}
+              {senses.soundLevel != null && <span>Ambient · {senses.soundLevel}/100</span>}
+            </div>
+          </div>
+        )}
+        <footer>
+          <span>{session.artist?.name ?? "Outside Lands"}</span>
+          <span>{session.stageName ?? "Golden Gate Park"}</span>
+        </footer>
+        <small>{postcard.signal}{session.aiMode ? ` · ${session.aiMode === "openai" ? "OpenAI translation" : "Festival-safe fallback"}` : ""}</small>
       </div>
     </article>
   );
@@ -287,22 +407,90 @@ function HoldButton({ onComplete, disabled = false, label = "Hold to send a puls
   );
 }
 
-function PulseOverlay({ session, onDone }: { session: SameSkySession; onDone?: () => void }) {
+function PulseOverlay({ session, clockOffsetMs = 0, onDone }: { session: SameSkySession; clockOffsetMs?: number; onDone?: () => void }) {
   const [phase, setPhase] = useState<"waiting" | "active" | "done">("waiting");
+  const [secondsLeft, setSecondsLeft] = useState(8);
   useEffect(() => {
     if (!session.pulseAt || !session.pulseEndsAt) return;
-    const begin = window.setTimeout(() => {
-      setPhase("active");
+    const syncedNow = () => Date.now() + clockOffsetMs;
+    const tick = () => {
+      const current = syncedNow();
+      if (current < session.pulseAt!) {
+        setPhase("waiting");
+        setSecondsLeft(Math.max(1, Math.ceil((session.pulseEndsAt! - session.pulseAt!) / 1000)));
+      } else if (current < session.pulseEndsAt!) {
+        setPhase("active");
+        setSecondsLeft(Math.max(0, Math.ceil((session.pulseEndsAt! - current) / 1000)));
+      } else {
+        setPhase("done");
+        onDone?.();
+      }
+    };
+    tick();
+    const interval = window.setInterval(tick, 120);
+    const vibrateAt = Math.max(0, session.pulseAt - syncedNow());
+    const vibrate = window.setTimeout(() => {
       if (navigator.vibrate && session.role === "host") navigator.vibrate([90, 70, 180]);
-    }, Math.max(0, session.pulseAt - Date.now()));
-    const finish = window.setTimeout(() => { setPhase("done"); onDone?.(); }, Math.max(0, session.pulseEndsAt - Date.now()));
-    return () => { window.clearTimeout(begin); window.clearTimeout(finish); };
-  }, [session.pulseAt, session.pulseEndsAt, session.role, onDone]);
+    }, vibrateAt);
+    return () => { window.clearInterval(interval); window.clearTimeout(vibrate); };
+  }, [session.pulseAt, session.pulseEndsAt, session.role, clockOffsetMs, onDone]);
   if (!session.pulseAt || phase === "done") return null;
   return (
-    <div className={classNames("pulse-overlay", phase)} style={{ "--pulse": session.pulseColor ?? "#ff7a61" } as React.CSSProperties} role="status" aria-live="assertive">
+    <div className={classNames("pulse-overlay", phase)} style={{ "--pulse": session.pulseColor ?? "#ff5e45", "--pulse-progress": `${((8 - secondsLeft) / 8) * 100}%` } as React.CSSProperties} role="status" aria-live="assertive">
       <div className="pulse-orb"><i /><i /><i /></div>
+      <div className="pulse-countdown" aria-hidden="true"><strong>{secondsLeft}</strong><span>SEC</span></div>
       <p>{phase === "waiting" ? "The signal is crossing…" : "For eight seconds,"}<strong>{phase === "active" ? "you were under the same sky." : "Take one breath."}</strong></p>
+    </div>
+  );
+}
+
+function ArtistSearch({ value, onChange }: { value: Artist; onChange: (artist: Artist) => void }) {
+  const [query, setQuery] = useState(value.name);
+  const [results, setResults] = useState<Artist[]>(FESTIVAL_ARTISTS);
+  const [source, setSource] = useState("festival-preview");
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      api<{ artists: Artist[]; source?: string }>(`/api/artists?q=${encodeURIComponent(query)}`, undefined, 5_000)
+        .then((result) => {
+          setResults(result.artists?.length ? result.artists : FESTIVAL_ARTISTS);
+          setSource(result.source ?? "festival-preview");
+        })
+        .catch(() => { setResults(FESTIVAL_ARTISTS); setSource("festival-preview"); });
+    }, 220);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+  return (
+    <div className="artist-search">
+      <label htmlFor="artist-search">Which set?</label>
+      <input
+        id="artist-search"
+        value={query}
+        onFocus={() => setOpen(true)}
+        onChange={(event) => { setQuery(event.target.value); setOpen(true); }}
+        placeholder="Search artists…"
+        autoComplete="off"
+      />
+      {open && (
+        <ul className="artist-results" role="listbox">
+          {results.map((artist) => (
+            <li key={artist.id}>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(artist);
+                  setQuery(artist.name);
+                  setOpen(false);
+                }}
+              >
+                <strong>{artist.name}</strong>
+                <span>{artist.genre} · {artist.source === "jambase" ? "JamBase" : artist.day}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <small>{source === "jambase" ? "Live music data by JamBase" : "Festival preview · JamBase enrichment ready"} · selected: {value.name}</small>
     </div>
   );
 }
@@ -363,7 +551,7 @@ function PresenceComposer({ bridge, onUpdate }: { bridge: Bridge; onUpdate: (bri
     try {
       const result = await api<ApiResult>(`/api/sessions/${bridge.session.code}/presence`, { method: "POST", headers: auth(bridge.token), body: JSON.stringify({ artist, stageName: stage, observation, senses, photoDataUrl: photo }) }, 9_000);
       if (!result.session) throw new Error("The postcard did not form. Try again.");
-      onUpdate({ token: bridge.token, session: result.session });
+      onUpdate(withClock({ token: bridge.token, session: result.session, clockOffsetMs: bridge.clockOffsetMs }, result.serverNow));
     } catch (caught) { setError(caught instanceof Error ? caught.message : "The postcard did not form. Try again."); }
     finally { setBusy(false); }
   }
@@ -386,7 +574,7 @@ function PresenceComposer({ bridge, onUpdate }: { bridge: Bridge; onUpdate: (bri
         </div>
 
         <div className="facts-panel">
-          <div className="field-row"><label>Which set?</label><select value={artist.id} onChange={(event) => setArtist(FESTIVAL_ARTISTS.find((item) => item.id === event.target.value) ?? FESTIVAL_ARTISTS[0])}>{FESTIVAL_ARTISTS.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.day}</option>)}</select></div>
+          <ArtistSearch value={artist} onChange={setArtist} />
           <div className="field-row"><label>Stage</label><select value={stage} onChange={(event) => setStage(event.target.value)}>{STAGES.map((item) => <option key={item}>{item}</option>)}</select></div>
           <div className="field-row"><label htmlFor="observation">What can they not know?</label><textarea id="observation" value={observation} onChange={(event) => setObservation(event.target.value.slice(0, 240))} maxLength={240} placeholder="The wind turned cold between songs…" /><small>{observation.length}/240</small></div>
           <fieldset className="field-row"><legend>What is literally true?</legend><div className="chips">{SIGNAL_TAGS.map((tag) => <button type="button" key={tag} className={classNames("chip", tags.includes(tag) && "selected")} aria-pressed={tags.includes(tag)} onClick={() => setTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : current.length < 3 ? [...current, tag] : current)}>{tags.includes(tag) ? "✓ " : "+ "}{tag}</button>)}</div></fieldset>
@@ -403,19 +591,38 @@ function PresenceComposer({ bridge, onUpdate }: { bridge: Bridge; onUpdate: (bri
   );
 }
 
-function Waiting({ role, paired }: { role: "host" | "guest"; paired: boolean }) {
+function Waiting({ role, paired, liveLabel }: { role: "host" | "guest"; paired: boolean; liveLabel?: string }) {
   return (
     <section className="waiting-state" aria-live="polite">
       <div className="waiting-orbit"><i /><i /><span>{paired ? "✓" : "·"}</span></div>
       <p className="eyebrow">{paired ? "BRIDGE CONNECTED" : "HOLDING THE BRIDGE"}</p>
       <h2>{role === "host" ? (paired ? "They’re here with you." : "Waiting for your person.") : "They’re catching one moment."}</h2>
       <p>{role === "host" ? "You can start capturing now. The postcard will wait for your approval." : "Keep this screen open. The moment will arrive here without a refresh."}</p>
+      {liveLabel && <p className="signal-heartbeat"><span className="live-dot" /> {liveLabel}</p>}
     </section>
   );
 }
 
 function CompletionActions({ bridge, onDelete, onNew }: { bridge: Bridge; onDelete: () => void; onNew: () => void }) {
-  return <div className="completion-actions"><p>No reply needed. That moment was enough.<br /><small>This bridge disappears in {timeLeft(bridge.session.expiresAt)}.</small></p><div><button className="button secondary" onClick={onNew}>Create another bridge</button><button className="text-button danger" onClick={onDelete}>Delete now</button></div></div>;
+  const [sky, setSky] = useState<{ count: number; pulses: SkyPulse[] }>({ count: 0, pulses: [] });
+  useEffect(() => {
+    api<{ count: number; pulses: SkyPulse[] }>("/api/sky", undefined, 4_000)
+      .then((result) => setSky({ count: result.count, pulses: result.pulses ?? [] }))
+      .catch(() => undefined);
+  }, []);
+  return (
+    <div className="completion-actions">
+      <div className="keepsake">
+        <p className="eyebrow">LOCAL KEEPSAKE</p>
+        <strong>{bridge.session.artist?.name ?? "Outside Lands"}</strong>
+        <span>{bridge.session.pulseColor ?? "#ff5e45"} · 8 seconds · expires in {timeLeft(bridge.session.expiresAt)}</span>
+        <small>Stored only on this device. Never posted.</small>
+      </div>
+      <SkyField pulses={sky.pulses} count={sky.count} compact />
+      <p>No reply needed. That moment was enough.<br /><small>This bridge disappears in {timeLeft(bridge.session.expiresAt)}.</small></p>
+      <div><button className="button secondary" onClick={onNew}>Create another bridge</button><button className="text-button danger" onClick={onDelete}>Delete now</button></div>
+    </div>
+  );
 }
 
 function BridgeView({ bridge, onUpdate, onExit, onDelete, onNew }: { bridge: Bridge; onUpdate: (bridge: Bridge) => void; onExit: () => void; onDelete: () => void; onNew: () => void }) {
@@ -437,17 +644,24 @@ function BridgeView({ bridge, onUpdate, onExit, onDelete, onNew }: { bridge: Bri
   }
   async function publish() {
     setBusy(true); setError("");
-    try { const result = await api<ApiResult>(`/api/sessions/${session.code}/publish`, { method: "POST", headers: auth(bridge.token), body: "{}" }); if (result.session) onUpdate({ token: bridge.token, session: result.session }); }
-    catch (caught) { setError(caught instanceof Error ? caught.message : "The postcard did not cross."); }
+    try {
+      const result = await api<ApiResult>(`/api/sessions/${session.code}/publish`, { method: "POST", headers: auth(bridge.token), body: "{}" });
+      if (result.session) onUpdate(withClock({ token: bridge.token, session: result.session, clockOffsetMs: bridge.clockOffsetMs }, result.serverNow));
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "The postcard did not cross."); }
     finally { setBusy(false); }
   }
   async function pulse() {
     setBusy(true); setError("");
-    try { const result = await api<ApiResult>(`/api/sessions/${session.code}/pulse`, { method: "POST", headers: auth(bridge.token), body: JSON.stringify({ color: pulseColor }) }); if (result.session) onUpdate({ token: bridge.token, session: result.session }); }
-    catch (caught) { setError(caught instanceof Error ? caught.message : "The pulse did not cross."); setBusy(false); }
+    try {
+      const result = await api<ApiResult>(`/api/sessions/${session.code}/pulse`, { method: "POST", headers: auth(bridge.token), body: JSON.stringify({ color: pulseColor }) });
+      if (result.session) onUpdate(withClock({ token: bridge.token, session: result.session, clockOffsetMs: bridge.clockOffsetMs }, result.serverNow));
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "The pulse did not cross."); setBusy(false); }
   }
   const complete = session.status === "completed";
   const pulseActive = session.status === "pulse_ready" || complete;
+  const liveLabel = session.paired
+    ? "Signal alive · private bridge polling"
+    : "Waiting for the second phone to claim this code";
 
   return (
     <main className="flow-page bridge-page">
@@ -463,19 +677,41 @@ function BridgeView({ bridge, onUpdate, onExit, onDelete, onNew }: { bridge: Bri
             <li className={session.postcard ? "done" : session.role === "host" ? "active" : ""}><span>3</span>Sensory postcard</li>
             <li className={pulseActive ? "done" : session.status === "postcard_ready" ? "active" : ""}><span>4</span>One pulse returns</li>
           </ol>
+          <p className="signal-heartbeat rail-heartbeat"><span className="live-dot" /> {liveLabel}</p>
           <button className="text-button danger rail-delete" onClick={onDelete}>Delete this bridge</button>
         </aside>
         <div className="bridge-main">
           {session.role === "host" && !session.postcard && <PresenceComposer bridge={bridge} onUpdate={onUpdate} />}
-          {session.role === "host" && session.status === "draft_ready" && session.postcard && <section className="review-layout"><div className="section-heading"><p className="eyebrow">HERE · REVIEW</p><h2>Every word waits<br /><em>for your approval.</em></h2><p>This is the human truth gate. If anything feels wrong, go back and remake it from your facts.</p><span className="mode-badge">{session.aiMode === "openai" ? "✦ OpenAI translation" : "✓ Festival-safe fallback"}</span></div><div><PostcardCard postcard={session.postcard} session={session} token={bridge.token} />{error && <Notice tone="error">{error}</Notice>}<div className="review-actions"><button className="button ghost" onClick={() => onUpdate({ token: bridge.token, session: { ...session, postcard: null, status: session.paired ? "connected" : "waiting" } })}>Remake from facts</button><button className="button primary" onClick={publish} disabled={busy}>{busy ? <Spinner label="Sending" /> : <>Send this moment <Icon>→</Icon></>}</button></div></div></section>}
-          {session.role === "host" && session.status === "postcard_ready" && <section className="sent-layout"><PostcardCard postcard={session.postcard!} session={session} token={bridge.token} compact /><Waiting role="host" paired={session.paired} /><p className="sent-note">Keep your phone in your hand. Their one pulse will arrive here.</p></section>}
-          {session.role === "guest" && !session.postcard && <Waiting role="guest" paired />}
-          {session.role === "guest" && session.status === "draft_ready" && <Waiting role="guest" paired />}
-          {session.role === "guest" && session.status === "postcard_ready" && session.postcard && <section className="received-layout"><div className="section-heading"><p className="eyebrow">FAR AWAY · ARRIVED</p><h2>One person sent<br /><em>this, right now.</em></h2><p>Read it. Then send one pulse back—no message, no reaction count.</p><div className="pulse-colors" aria-label="Choose a pulse color">{PULSE_COLORS.map((color) => <button key={color} style={{ background: color }} className={pulseColor === color ? "selected" : ""} aria-label={`Choose ${color} pulse`} aria-pressed={pulseColor === color} onClick={() => setPulseColor(color)} />)}</div></div><div><PostcardCard postcard={session.postcard} session={session} token={bridge.token} />{error && <Notice tone="error">{error}</Notice>}<HoldButton onComplete={pulse} disabled={busy} /></div></section>}
+          {session.role === "host" && session.status === "draft_ready" && session.postcard && <section className="review-layout"><div className="section-heading"><p className="eyebrow">HERE · REVIEW</p><h2>Every word waits<br /><em>for your approval.</em></h2><p>This is the human truth gate. If anything feels wrong, go back and remake it from your facts.</p><span className="mode-badge">{session.aiMode === "openai" ? "✦ OpenAI translation" : "✓ Festival-safe fallback"}</span></div><div><PostcardCard postcard={session.postcard} session={session} token={bridge.token} />{error && <Notice tone="error">{error}</Notice>}<div className="review-actions"><button className="button ghost" onClick={() => onUpdate({ token: bridge.token, session: { ...session, postcard: null, status: session.paired ? "connected" : "waiting" }, clockOffsetMs: bridge.clockOffsetMs })}>Remake from facts</button><button className="button primary" onClick={publish} disabled={busy}>{busy ? <Spinner label="Sending" /> : <>Send this moment <Icon>→</Icon></>}</button></div></div></section>}
+          {session.role === "host" && session.status === "postcard_ready" && <section className="sent-layout"><PostcardCard postcard={session.postcard!} session={session} token={bridge.token} compact /><Waiting role="host" paired={session.paired} liveLabel="Waiting for their one pulse to cross back" /><p className="sent-note">Keep your phone in your hand. Their one pulse will arrive here.</p></section>}
+          {session.role === "guest" && !session.postcard && <Waiting role="guest" paired liveLabel={liveLabel} />}
+          {session.role === "guest" && session.status === "draft_ready" && <Waiting role="guest" paired liveLabel="Postcard is being reviewed onsite" />}
+          {session.role === "guest" && session.status === "postcard_ready" && session.postcard && (
+            <section className="received-layout">
+              <div className="section-heading">
+                <p className="eyebrow">FAR AWAY · ARRIVED</p>
+                <h2>One person sent<br /><em>this, right now.</em></h2>
+                <p>Read it. Then send one pulse back—no message, no reaction count.</p>
+                {session.senses && (
+                  <div className="ambient-mirror" aria-label="Field energy mirrored for the remote viewer">
+                    <span>Listening with them</span>
+                    <div className="energy-meter"><span style={{ width: `${session.senses.energy}%` }} /></div>
+                    <strong>{session.senses.energy}/100 field energy</strong>
+                  </div>
+                )}
+                <div className="pulse-colors" aria-label="Choose a pulse color">{PULSE_COLORS.map((color) => <button key={color} style={{ background: color }} className={pulseColor === color ? "selected" : ""} aria-label={`Choose ${color} pulse`} aria-pressed={pulseColor === color} onClick={() => setPulseColor(color)} />)}</div>
+              </div>
+              <div>
+                <PostcardCard postcard={session.postcard} session={session} token={bridge.token} />
+                {error && <Notice tone="error">{error}</Notice>}
+                <HoldButton onComplete={pulse} disabled={busy} />
+              </div>
+            </section>
+          )}
           {pulseActive && session.postcard && <section className="complete-layout"><PostcardCard postcard={session.postcard} session={session} token={bridge.token} compact /><div><p className="eyebrow">MOMENT COMPLETE</p><h2>For eight seconds,<br /><em>you were under the same sky.</em></h2><CompletionActions bridge={bridge} onDelete={onDelete} onNew={onNew} /></div></section>}
         </div>
       </div>
-      {session.pulseAt && <PulseOverlay session={session} />}
+      {session.pulseAt && <PulseOverlay session={session} clockOffsetMs={bridge.clockOffsetMs} />}
     </main>
   );
 }
@@ -485,14 +721,16 @@ function DemoStage({ onExit }: { onExit: () => void }) {
   const [guest, setGuest] = useState<Bridge | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [health, setHealth] = useState<HealthState | null>(null);
   const [sample] = useState(() => makeSampleImage());
 
   const refresh = useCallback(async (bridge: Bridge, setter: (value: Bridge) => void) => {
     const result = await api<ApiResult>(`/api/sessions/${bridge.session.code}`, { headers: auth(bridge.token) }, 4_000);
-    if (result.session) setter({ token: bridge.token, session: result.session });
+    if (result.session) setter(withClock({ token: bridge.token, session: result.session, clockOffsetMs: bridge.clockOffsetMs }, result.serverNow));
   }, []);
 
   useEffect(() => {
+    api<HealthState>("/api/health", undefined, 4_000).then(setHealth).catch(() => undefined);
     let active = true;
     (async () => {
       try {
@@ -500,7 +738,10 @@ function DemoStage({ onExit }: { onExit: () => void }) {
         if (!created.token || !created.session) throw new Error("Demo bridge could not open.");
         const joined = await api<ApiResult>("/api/sessions/join", { method: "POST", body: JSON.stringify({ code: created.session.code }) });
         if (!joined.token || !joined.session) throw new Error("Demo viewer could not join.");
-        if (active) { setHost({ token: created.token, session: { ...created.session, paired: true, status: "connected" } }); setGuest({ token: joined.token, session: joined.session }); }
+        if (active) {
+          setHost(withClock({ token: created.token, session: { ...created.session, paired: true, status: "connected" } }, created.serverNow));
+          setGuest(withClock({ token: joined.token, session: joined.session }, joined.serverNow));
+        }
       } catch (caught) { if (active) setError(caught instanceof Error ? caught.message : "Demo could not start."); }
     })();
     return () => { active = false; };
@@ -519,17 +760,34 @@ function DemoStage({ onExit }: { onExit: () => void }) {
     if (!host) return; setBusy(true); setError("");
     try {
       const result = await api<ApiResult>(`/api/sessions/${host.session.code}/presence`, { method: "POST", headers: auth(host.token), body: JSON.stringify({ artist: FESTIVAL_ARTISTS[0], stageName: STAGES[0], observation: "Purple light is moving through a band of fog above the crowd.", senses: { energy: 82, soundLevel: 71, tags: ["Cool wind", "Bass in my chest"], light: "violet and amber", air: "cool" }, photoDataUrl: sample }) }, 9_000);
-      if (result.session) setHost({ token: host.token, session: result.session });
+      if (result.session) setHost(withClock({ token: host.token, session: result.session, clockOffsetMs: host.clockOffsetMs }, result.serverNow));
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Demo postcard failed."); } finally { setBusy(false); }
   }
-  async function publish() { if (!host) return; setBusy(true); try { const result = await api<ApiResult>(`/api/sessions/${host.session.code}/publish`, { method: "POST", headers: auth(host.token), body: "{}" }); if (result.session) setHost({ token: host.token, session: result.session }); } catch (caught) { setError(caught instanceof Error ? caught.message : "Send failed."); } finally { setBusy(false); } }
-  async function pulse() { if (!guest) return; setBusy(true); try { const result = await api<ApiResult>(`/api/sessions/${guest.session.code}/pulse`, { method: "POST", headers: auth(guest.token), body: JSON.stringify({ color: "#ff7a61" }) }); if (result.session) setGuest({ token: guest.token, session: result.session }); } catch (caught) { setError(caught instanceof Error ? caught.message : "Pulse failed."); setBusy(false); } }
+  async function publish() {
+    if (!host) return; setBusy(true);
+    try {
+      const result = await api<ApiResult>(`/api/sessions/${host.session.code}/publish`, { method: "POST", headers: auth(host.token), body: "{}" });
+      if (result.session) setHost(withClock({ token: host.token, session: result.session, clockOffsetMs: host.clockOffsetMs }, result.serverNow));
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "Send failed."); } finally { setBusy(false); }
+  }
+  async function pulse() {
+    if (!guest) return; setBusy(true);
+    try {
+      const result = await api<ApiResult>(`/api/sessions/${guest.session.code}/pulse`, { method: "POST", headers: auth(guest.token), body: JSON.stringify({ color: "#ff5e45" }) });
+      if (result.session) setGuest(withClock({ token: guest.token, session: result.session, clockOffsetMs: guest.clockOffsetMs }, result.serverNow));
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "Pulse failed."); setBusy(false); }
+  }
 
   const status = host?.session.status ?? "loading";
   return (
     <main className="demo-page">
       <header className="demo-nav"><Logo /><div><span className="mode-badge">LIVE BACKEND · TWO PRIVATE CLIENTS</span><button className="text-button" onClick={() => window.location.reload()}>Reset</button><button className="text-button" onClick={onExit}>Exit demo</button></div></header>
-      <section className="demo-intro"><p className="eyebrow">ONE-SCREEN JUDGE MODE</p><h1>Livestreams transmit video.<br /><em>This transmits presence.</em></h1><p>Everything below uses the real create, join, publish, polling, and synchronized-pulse APIs.</p></section>
+      <section className="demo-intro">
+        <p className="eyebrow">ONE-SCREEN JUDGE MODE</p>
+        <h1>Livestreams transmit video.<br /><em>This transmits presence.</em></h1>
+        <p>Everything below uses the real create, join, publish, polling, and synchronized-pulse APIs.</p>
+        <StackChips health={health} />
+      </section>
       {error && <Notice tone="error">{error}</Notice>}
       {!host || !guest ? <div className="demo-loading"><Spinner label="Opening two ends of one private bridge" /></div> : (
         <div className="device-stage">
@@ -538,7 +796,7 @@ function DemoStage({ onExit }: { onExit: () => void }) {
             <div className="device-screen">
               {status === "connected" && <><div className="demo-image"><img src={sample} alt="Abstract rights-safe sample of festival lights and fog" /><span>SAMPLE CAPTURE · NO FACES</span></div><h2>What video can’t carry.</h2><div className="demo-facts"><span>Cool wind</span><span>Bass in my chest</span><span>82/100 energy</span></div><button className="button primary full" onClick={make} disabled={busy}>{busy ? <Spinner label="Making" /> : "Make the postcard →"}</button></>}
               {status === "draft_ready" && host.session.postcard && <><PostcardCard postcard={host.session.postcard} session={host.session} token={host.token} sampleImage={sample} compact /><button className="button primary full" onClick={publish} disabled={busy}>{busy ? <Spinner label="Sending" /> : "Approve & send →"}</button></>}
-              {status === "postcard_ready" && <Waiting role="host" paired />}
+              {status === "postcard_ready" && <Waiting role="host" paired liveLabel="Waiting for the remote pulse" />}
               {(status === "pulse_ready" || status === "completed") && <div className="device-complete"><span>✓</span><h2>They were here with you.</h2><p>For eight seconds, you were under the same sky.</p></div>}
             </div>
           </article>
@@ -546,12 +804,12 @@ function DemoStage({ onExit }: { onExit: () => void }) {
           <article className="device guest-device">
             <header><span>FAR AWAY</span><small>OFFICIAL LIVESTREAM VIEWER</small></header>
             <div className="device-screen">
-              {!guest.session.postcard || guest.session.status === "draft_ready" ? <Waiting role="guest" paired /> : guest.session.status === "postcard_ready" ? <><PostcardCard postcard={guest.session.postcard} session={guest.session} token={guest.token} sampleImage={sample} compact /><HoldButton onComplete={pulse} disabled={busy} label="Hold to send back" /></> : <div className="device-complete"><span>✓</span><h2>Your pulse crossed.</h2><p>No likes. No chat. That one signal was enough.</p></div>}
+              {!guest.session.postcard || guest.session.status === "draft_ready" ? <Waiting role="guest" paired liveLabel="Listening for the postcard" /> : guest.session.status === "postcard_ready" ? <><PostcardCard postcard={guest.session.postcard} session={guest.session} token={guest.token} sampleImage={sample} compact /><HoldButton onComplete={pulse} disabled={busy} label="Hold to send back" /></> : <div className="device-complete"><span>✓</span><h2>Your pulse crossed.</h2><p>No likes. No chat. That one signal was enough.</p></div>}
             </div>
           </article>
         </div>
       )}
-      {host?.session.pulseAt && <PulseOverlay session={host.session} />}
+      {host?.session.pulseAt && <PulseOverlay session={host.session} clockOffsetMs={host.clockOffsetMs} />}
     </main>
   );
 }
@@ -592,7 +850,7 @@ export function SameSkyApp() {
         if (response.status === 404) { localStorage.removeItem(STORAGE_KEY); setBridge(null); setResume(null); setView("landing"); return; }
         if (!response.ok) return;
         const result = (await response.json()) as ApiResult;
-        if (result.session) saveBridge({ token: bridge.token, session: result.session });
+        if (result.session) saveBridge(withClock({ token: bridge.token, session: result.session, clockOffsetMs: bridge.clockOffsetMs }, result.serverNow));
       } catch { /* a dropped poll is recovered on the next interval */ }
     };
     const interval = window.setInterval(poll, bridge.session.status === "postcard_ready" ? 500 : 1100);
@@ -605,7 +863,7 @@ export function SameSkyApp() {
     try {
       const result = await api<ApiResult>("/api/sessions", { method: "POST", body: JSON.stringify({ demo: false }) });
       if (!result.token || !result.session) throw new Error("A private bridge could not open.");
-      saveBridge({ token: result.token, session: result.session });
+      saveBridge(withClock({ token: result.token, session: result.session }, result.serverNow));
     } catch (caught) { setGlobalError(caught instanceof Error ? caught.message : "The bridge could not open."); }
     finally { setOpening(false); }
   }
@@ -620,7 +878,7 @@ export function SameSkyApp() {
     if (!resume) return;
     try {
       const result = await api<ApiResult>(`/api/sessions/${resume.session.code}`, { headers: auth(resume.token) }, 4_000);
-      if (!result.session) throw new Error(); saveBridge({ token: resume.token, session: result.session });
+      if (!result.session) throw new Error(); saveBridge(withClock({ token: resume.token, session: result.session }, result.serverNow));
     } catch { localStorage.removeItem(STORAGE_KEY); setResume(null); setGlobalError("That saved bridge has faded. Open a new one."); }
   }
 

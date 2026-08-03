@@ -34,6 +34,13 @@ Core positioning: **Livestreams transmit video. Same Sky transmits presence.**
   - acid-chartreuse signal accent;
   - sharper, less card-heavy UI;
   - completely rebuilt 10-slide cinematic deck.
+- Feature pack on top of V2:
+  - animated anonymous shared-sky field from `/api/sky`;
+  - JamBase-backed artist search with festival-preview fallback;
+  - sensory receipt + ambient mirror on postcards;
+  - clock-synced pulse countdown via `serverNow`;
+  - stack readiness chips from `/api/health`;
+  - local keepsake + sky bloom on completion.
 - V2 source and deck are on `main`. Confirm the live deployment revision under **Release History** before making further changes.
 
 ## Release History
