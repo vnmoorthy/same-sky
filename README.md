@@ -21,7 +21,7 @@ a secondary **Superfan connection** benefit.
 
 ## Judge demo
 
-From the landing page, choose **Run the one-screen judge demo**. It opens two
+From the landing page, choose **Judges: feel the full ritual in 30 seconds**. It opens two
 private clients—**HERE** and **FAR AWAY**—against the real session APIs and walks
 through:
 

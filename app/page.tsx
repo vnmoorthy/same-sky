@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { SameSkyApp } from "./same-sky-app";
 
 export const metadata: Metadata = {
-  title: "Same Sky — Feel the set from anywhere",
-  description: "A private, 30-second bridge between someone at Outside Lands and someone watching from home.",
+  title: {
+    absolute: "Same Sky — One set. Two skies.",
+  },
+  description: "Livestreams transmit video. Same Sky transmits presence—a private festival ritual between one person there and one person anywhere.",
 };
 
 export default function Home() {

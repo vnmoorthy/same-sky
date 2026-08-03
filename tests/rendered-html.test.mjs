@@ -12,7 +12,7 @@ test("ships the built Same Sky product", async () => {
     readFile(new URL("app/layout.tsx", root), "utf8"),
   ]);
   assert.match(page, /SameSkyApp/);
-  assert.match(layout, /Same Sky — Feel the set from anywhere/);
+  assert.match(layout, /Same Sky — One set\. Two skies\./);
   assert.match(app, /I’m at the festival/);
   assert.match(app, /I’m watching from home/);
   assert.match(app, /Hold to send a pulse/);

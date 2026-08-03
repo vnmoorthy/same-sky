@@ -13,24 +13,26 @@ const display = Fraunces({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://same-sky.chatgpt.site"),
+  metadataBase: new URL("https://same-sky-live.vnmoorthy.chatgpt.site"),
   title: {
-    default: "Same Sky — Feel the set from anywhere",
+    default: "Same Sky — One set. Two skies.",
     template: "%s · Same Sky",
   },
-  description: "A private, 30-second bridge between someone at Outside Lands and someone watching from home.",
+  description: "Livestreams transmit video. Same Sky transmits presence—a private festival ritual between one person there and one person anywhere.",
   applicationName: "Same Sky",
   keywords: ["Outside Lands", "music festival", "livestream", "fan connection", "accessibility"],
   openGraph: {
     type: "website",
-    title: "Same Sky — Feel the set from anywhere",
+    title: "Same Sky — One set. Two skies.",
     description: "Livestreams transmit video. Same Sky transmits presence.",
     siteName: "Same Sky",
+    images: [{ url: "/hero-festival-v2.png", width: 1536, height: 1024, alt: "Same Sky — one festival moment shared across distance" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Same Sky — Feel the set from anywhere",
+    title: "Same Sky — One set. Two skies.",
     description: "Livestreams transmit video. Same Sky transmits presence.",
+    images: ["/hero-festival-v2.png"],
   },
   icons: {
     icon: "/favicon.svg",

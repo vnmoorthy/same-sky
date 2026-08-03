@@ -28,13 +28,13 @@ Core positioning: **Livestreams transmit video. Same Sky transmits presence.**
 - `npm run build` passes.
 - `npm run lint` passes with non-blocking image/hook warnings.
 - The 10-slide deck passes the no-overflow verifier.
-- A major V2 visual redesign is currently in the working tree:
+- A major V2 visual redesign is implemented:
   - cinematic generated festival hero image;
   - asymmetric editorial landing page;
   - acid-chartreuse signal accent;
   - sharper, less card-heavy UI;
   - completely rebuilt 10-slide cinematic deck.
-- At the time this file was first written, the V2 visual changes had not yet been committed, pushed, or redeployed. Check `git status`, then follow **Immediate Release Steps** below.
+- V2 source and deck are on `main`. Confirm the live deployment revision under **Release History** before making further changes.
 
 ## Product Experience
 
