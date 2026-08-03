@@ -88,16 +88,19 @@ deletes both the D1 row and corresponding R2 object.
    the postcard only after `postcard_ready`.
 7. **Return.** The guest holds the UI control. `POST /pulse` atomically stores
    `pulse_at = serverNow + 1800ms` and `pulse_ends_at = pulse_at + 8000ms`.
-8. **Synchronize.** Both clients use those server-authored timestamps for the
-   overlay; the host vibrates when browser support exists.
-9. **Fade.** Either token may call `DELETE`; otherwise the session becomes
-   inaccessible at 24 hours and lazy cleanup removes its row and image together.
+8. **Synchronize.** Both clients apply a `serverNow`-derived clock offset and
+   use those server-authored timestamps for the overlay; the host vibrates when
+   browser support exists.
+9. **Aggregate.** Completed pulses contribute only anonymized color, timing, and
+   artist label to `/api/sky`—never identity, code, observation, or media.
+10. **Fade.** Either token may call `DELETE`; otherwise the session becomes
+    inaccessible at 24 hours and lazy cleanup removes its row and image together.
 
 ## Components and ownership
 
 | Component | Responsibility |
 |---|---|
-| `app/same-sky-app.tsx` | Role selection, bridge UI, capture controls, polling, hold interaction, synchronized overlay, and one-screen judge mode. |
+| `app/same-sky-app.tsx` | Role selection, shared-sky field, JamBase artist search, sensory receipt, bridge UI, polling with clock offset, hold interaction, synchronized overlay, stack chips, and one-screen judge mode. |
 | `app/api/sessions/**` | Capability authorization and legal state transitions. |
 | `lib/server/session.ts` | Code/token generation, role resolution, serialization, and common no-store responses. |
 | `lib/server/postcard.ts` | OpenAI request policy, strict response validation, timeout, sanitization, and festival-safe generator. |

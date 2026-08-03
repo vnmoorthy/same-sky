@@ -630,7 +630,25 @@ function BridgeView({ bridge, onUpdate, onExit, onDelete, onNew }: { bridge: Bri
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pulseColor, setPulseColor] = useState(PULSE_COLORS[0]);
+  const [liveLabel, setLiveLabel] = useState("Waiting for the second phone to claim this code");
   const session = bridge.session;
+  const syncKey = `${session.status}:${session.paired}:${Boolean(session.postcard)}:${session.pulseAt ?? 0}:${session.expiresAt}`;
+
+  useEffect(() => {
+    // Heartbeat age is derived from session poll updates (syncKey), not stamped during render.
+    const syncedAt = Date.now();
+    const tick = () => {
+      const syncAge = Math.max(0, Math.floor((Date.now() - syncedAt) / 1000));
+      setLiveLabel(
+        session.paired
+          ? `Signal alive · synced ${syncAge === 0 ? "just now" : `${syncAge}s ago`}`
+          : "Waiting for the second phone to claim this code",
+      );
+    };
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, [syncKey, session.paired]);
 
   async function copyInvite() {
     const invite = `${window.location.origin}/?join=${session.code}`;
@@ -659,9 +677,6 @@ function BridgeView({ bridge, onUpdate, onExit, onDelete, onNew }: { bridge: Bri
   }
   const complete = session.status === "completed";
   const pulseActive = session.status === "pulse_ready" || complete;
-  const liveLabel = session.paired
-    ? "Signal alive · private bridge polling"
-    : "Waiting for the second phone to claim this code";
 
   return (
     <main className="flow-page bridge-page">

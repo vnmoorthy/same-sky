@@ -194,12 +194,7 @@ The vinext dev server may choose another port if 3000 is occupied. Use the print
 
 ## Immediate Release Steps
 
-1. Inspect the current V2 changes:
-
-   ```bash
-   git status --short
-   git diff -- app/same-sky-app.tsx app/globals.css
-   ```
+1. Confirm working tree is clean of secrets and junk (`photo-*.png` is gitignored).
 
 2. Re-run quality gates:
 
@@ -208,50 +203,44 @@ The vinext dev server may choose another port if 3000 is occupied. Use the print
    npm run lint
    ```
 
-3. Verify the deck:
+3. Commit and push `main` (never force-push):
 
    ```bash
-   /Users/moorthy/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 \
-     /Users/moorthy/.codex/plugins/cache/openai-primary-runtime/presentations/26.802.11031/skills/presentations/container_tools/slides_test.py \
-     docs/Same-Sky-Hackathon-Deck.pptx
-   ```
-
-4. Commit and push:
-
-   ```bash
-   git add app/same-sky-app.tsx app/globals.css public/hero-festival-v2.png \
-     docs/Same-Sky-Hackathon-Deck.pptx docs/same-sky-hero.png HANDOFF.md
-   git commit -m "Elevate Same Sky with cinematic festival art direction"
+   git add -A
+   git status
+   git commit -m "Polish Same Sky GitHub presence and feature pack"
    git push origin main
    ```
 
-5. Save and deploy the new Sites version using project ID:
+4. Deploy ChatGPT Sites for project:
 
    ```text
    appgprj_6a6fde2966cc8191b1eb4fd89ee55783
    ```
 
-   The previously successful deployment was:
+   In the Sites / Codex deploy UI (or the platform version tool):
+   1. Save a **new** version from the pushed commit (do not reuse an old `appgver_*`).
+   2. Publish/deploy that version to production.
+   3. Confirm status `succeeded`.
 
-   ```text
-   version: appgprj_6a6fde2966cc8191b1eb4fd89ee55783~appgver_26695949657c8191a2933304300d6865
-   deployment: appgdep_6a6fdeaf950c819197f0fd3475104e3e
-   ```
+   `npx vinext deploy` targets Cloudflare Workers directly and is **not** the
+   ChatGPT Sites release path used for `*.chatgpt.site`.
 
-   Create a new version for the new commit; do not reuse the previous version ID.
-
-6. Verify:
+5. Verify:
 
    ```bash
    curl -sS https://same-sky-live.vnmoorthy.chatgpt.site/api/health
    ```
+
+   Expect `ok: true`, `database: true`, `media: true`. `openai` / `jambase`
+   remain `false` until secrets are configured.
 
 ## Demo Script
 
 Fast judged sequence:
 
 1. Open production.
-2. Click the one-screen judge demo.
+2. Click **Judges: feel the full ritual in 30 seconds**.
 3. Say: “Livestreams transmit video. Same Sky transmits presence.”
 4. Create the field postcard.
 5. Publish it.

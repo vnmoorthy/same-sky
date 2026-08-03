@@ -9,7 +9,7 @@ Same Sky directly improves the official Outside Lands livestream experience whil
 
 ## 100-word submission copy
 
-Livestreams transmit video. Same Sky transmits presence. It pairs one person at Outside Lands with a livestream viewer anywhere. The onsite fan captures one image and sensory facts about light, air, and energy. OpenAI turns only those inputs into an accessible postcard that the sender reviews. The remote fan receives it, then holds to return one pulse. Both bloom with the same color for eight synchronized seconds. No chat, follower counts, feeds, or parasocial noise—just one reciprocal moment. Same Sky makes the official livestream feel embodied, gives distant superfans a role, and leaves the festival with an aggregate shared sky.
+Livestreams transmit video. Same Sky transmits presence. It pairs one person at Outside Lands with a livestream viewer anywhere. The onsite fan captures one image and sensory facts about light, air, and energy. OpenAI turns only those inputs into an accessible postcard—with a literal sensory receipt—that the sender reviews. The remote fan receives it, then holds to return one clock-synced pulse. Both bloom with the same color for eight seconds. No chat, follower counts, feeds, or parasocial noise—just one reciprocal moment. Same Sky makes the official livestream feel embodied, gives distant superfans a role, and leaves only an anonymous mark on today’s shared sky.
 
 ## 30-second pitch
 
@@ -17,11 +17,11 @@ Watching a festival remotely gives you the picture, but not the feeling of being
 
 ## 90-second demo runbook
 
-Use **Run the one-screen judge demo** from the home page. It exercises the real create, join, publish, polling, and synchronized-pulse APIs without relying on a second device or venue connectivity.
+Use **Judges: feel the full ritual in 30 seconds** from the home page. It exercises the real create, join, publish, polling, and synchronized-pulse APIs without relying on a second device or venue connectivity.
 
 | Time | Action | Narration |
 |---|---|---|
-| 0:00–0:10 | Hold on the landing-page promise, then open judge mode. | “Livestreams transmit video. Same Sky transmits presence.” |
+| 0:00–0:10 | Hold on the landing-page promise (shared sky + stack chips), then open judge mode. | “Livestreams transmit video. Same Sky transmits presence.” |
 | 0:10–0:22 | Point to the two live clients: **HERE / Golden Gate Park** and **FAR AWAY / Official livestream viewer**. | “This is one private bridge between an attendee and one viewer—not a public feed.” |
 | 0:22–0:38 | On **HERE**, show the rights-safe sample, “Cool wind,” “Bass in my chest,” and 82/100 energy. Click **Make the postcard**. | “The attendee captures what video misses. OpenAI translates only their literal inputs into accessible language; no audio is stored.” |
 | 0:38–0:52 | Let the generated postcard appear. Briefly point out its provenance/accessibility details. Click **Approve & send**. | “Nothing crosses until the human onsite reviews and approves every word.” |
@@ -75,7 +75,7 @@ Submit as soon as the deployment and video are ready: the official page says **�
 - [ ] **Demo video URL:** Upload a public/unlisted, no-login-required video following the 90-second runbook; verify it in an incognito window.
 - [ ] **Project icon:** Upload a legible square icon that still reads at thumbnail size.
 - [ ] Confirm the landing page clearly states the promise, the primary use case, and how to run judge mode.
-- [ ] Confirm **Run the one-screen judge demo** reaches two connected clients and completes postcard → approval → arrival → pulse.
+- [ ] Confirm **Judges: feel the full ritual in 30 seconds** reaches two connected clients and completes postcard → approval → arrival → pulse.
 - [ ] Confirm OpenAI mode and the festival-safe fallback both communicate provenance accurately.
 - [ ] Confirm the JamBase credit is visible and uses `rel="nofollow"`; verify every JamBase event/ticket link if event data is shown.
 - [ ] Confirm no copy implies affiliation with, endorsement by, or guaranteed distribution through Outside Lands, Amazon Music, Prime Video, OpenAI, or JamBase.
