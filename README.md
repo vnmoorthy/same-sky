@@ -276,6 +276,7 @@ Before presenting, also run this manual smoke test:
 
 ## Sources and attribution
 
+- Contributor: [vnmoorthy](https://github.com/vnmoorthy) · [same-sky on GitHub](https://github.com/vnmoorthy/same-sky)
 - [OutsideLLMS official site](https://outsidellms.com/)
 - [OutsideLLMS III event page](https://luma.com/OutsideLLMS3)
 - [Official Outside Lands livestream on Prime Video](https://www.primevideo.com/detail/0FFYUNMY3OBBG8WGDH9O8IY7UO)

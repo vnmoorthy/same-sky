@@ -69,9 +69,9 @@ Submit as soon as the deployment and video are ready: the official page says **â
 - [ ] **Project name:** Same Sky
 - [ ] **Primary category:** Make the festival better
 - [ ] **Description:** Paste the 100-word copy above; confirm the form accepts its length.
-- [ ] **Applicant/team:** Add the lead applicant and, if applicable, team members 2 and 3 exactly as they should appear publicly.
-- [ ] **Profile URL:** Use a public GitHub, LinkedIn, portfolio, or team URL.
-- [ ] **Site URL:** Use the public ChatGPT Sites deployment; test it signed out and on mobile.
+- [ ] **Applicant/team:** vnmoorthy
+- [ ] **Profile URL:** https://github.com/vnmoorthy
+- [ ] **Site URL:** https://same-sky-live.vnmoorthy.chatgpt.site â€” test signed out and on mobile.
 - [ ] **Demo video URL:** Upload a public/unlisted, no-login-required video following the 90-second runbook; verify it in an incognito window.
 - [ ] **Project icon:** Upload a legible square icon that still reads at thumbnail size.
 - [ ] Confirm the landing page clearly states the promise, the primary use case, and how to run judge mode.

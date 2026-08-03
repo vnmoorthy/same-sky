@@ -14,6 +14,7 @@ Core positioning: **Livestreams transmit video. Same Sky transmits presence.**
 
 - Production: https://same-sky-live.vnmoorthy.chatgpt.site
 - GitHub: https://github.com/vnmoorthy/same-sky
+- Contributor: [vnmoorthy](https://github.com/vnmoorthy)
 - Hackathon: https://outsidellms.com/
 - Event page: https://luma.com/OutsideLLMS3
 
