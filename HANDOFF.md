@@ -36,6 +36,20 @@ Core positioning: **Livestreams transmit video. Same Sky transmits presence.**
   - completely rebuilt 10-slide cinematic deck.
 - V2 source and deck are on `main`. Confirm the live deployment revision under **Release History** before making further changes.
 
+## Release History
+
+Current V2 production release:
+
+```text
+source commit: 2fa379e4e69fe71dda2f0c256902463a8dc408c6
+Sites version: appgprj_6a6fde2966cc8191b1eb4fd89ee55783~appgver_468da8d5c51481918779f00ff439279d
+deployment: appgdep_6a6fe5efddc081918e812d8d1575d0bd
+status: succeeded
+URL: https://same-sky-live.vnmoorthy.chatgpt.site
+```
+
+The first V2 publish attempt failed before release because D1 was temporarily overloaded. Retrying the same saved artifact succeeded; no code change was required.
+
 ## Product Experience
 
 ### Landing
@@ -260,11 +274,11 @@ Do not drift back toward generic SaaS styling.
 - Avoid: purple gradient blobs, uniform rounded cards, centered feature grids, emoji decoration, generic dashboard UI.
 - The hero art is original AI-generated project artwork with no logos, text, identifiable faces, or celebrity likenesses.
 
-## Definition of Done
+## Definition of Done — Completed
 
-- V2 visual changes committed and pushed.
-- Sites production redeployed from the exact commit.
-- Live landing page and judge demo manually checked on desktop and mobile.
-- GitHub README hero reflects the V2 deck cover.
-- Deck remains exactly 10 slides and passes overflow checks.
-- Production health endpoint returns `ok: true`, `database: true`, and `media: true`.
+- [x] V2 visual changes committed and pushed.
+- [x] Sites production redeployed from the exact commit.
+- [x] Landing page visually checked at 1440px and 390px.
+- [x] GitHub README hero reflects the V2 deck cover.
+- [x] Deck remains exactly 10 slides and passes overflow checks.
+- [x] Product build, tests, and lint complete without errors.
