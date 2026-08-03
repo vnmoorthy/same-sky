@@ -103,7 +103,6 @@ function Landing({ onHost, onGuest, onDemo, resume, onResume }: { onHost: () => 
       <nav className="nav shell">
         <Logo />
         <div className="nav-actions">
-          <a href="#ritual">How it works</a>
           <a href="#ritual">The ritual</a>
           <button className="text-button" onClick={() => setPrivacy(true)}>Privacy</button>
         </div>
@@ -111,9 +110,10 @@ function Landing({ onHost, onGuest, onDemo, resume, onResume }: { onHost: () => 
 
       <section className="hero shell">
         <div className="hero-copy">
-          <p className="eyebrow"><span className="live-dot" /> OUTSIDE LANDS · ONE PERSON AT A TIME</p>
-          <h1>Feel the set.<br /><em>From anywhere.</em></h1>
-          <p className="hero-lede">A private 30-second bridge between someone in Golden Gate Park and someone watching from home.</p>
+          <p className="eyebrow"><span className="live-dot" /> OUTSIDE LANDS · PRIVATE RITUAL</p>
+          <p className="hero-brand">SAME SKY</p>
+          <h1>One set.<br /><em>Two skies.</em></h1>
+          <p className="hero-lede">Livestreams transmit video. Same Sky transmits presence—one sensory postcard, one return pulse, eight seconds of shared light.</p>
           <div className="hero-actions">
             <button className="button primary" onClick={onHost}><Icon>↗</Icon>I’m at the festival</button>
             <button className="button secondary" onClick={onGuest}><Icon>⌂</Icon>I’m watching from home</button>
@@ -123,23 +123,17 @@ function Landing({ onHost, onGuest, onDemo, resume, onResume }: { onHost: () => 
               <span><strong>Resume your bridge</strong><small>{resume.session.code} · {timeLeft(resume.session.expiresAt)} left</small></span><Icon>→</Icon>
             </button>
           )}
-          <button className="demo-link" onClick={onDemo}><span className="play">▶</span> Run the one-screen judge demo <span>→</span></button>
-          <p className="trust-line"><span>✓</span> No account <span>✓</span> No feed <span>✓</span> Gone within 24 hours</p>
+          <button className="demo-link" onClick={onDemo}><span className="play">▶</span> Judges: feel the full ritual in 30 seconds <span>→</span></button>
+          <p className="trust-line">No account · No feed · Gone within 24 hours</p>
         </div>
-        <div className="hero-visual">
+        <div className="hero-visual" aria-hidden="true">
           <AtmosphericArt />
-          <div className="floating-postcard">
-            <span className="card-kicker">FROM THE FIELD · RIGHT NOW</span>
-            <strong>A signal through the cool air.</strong>
-            <span className="card-signal">82/100 energy · violet light</span>
-          </div>
-          <div className="connection-pill"><span className="live-dot" /> {count ? `${count} pulses in today’s sky` : "The first pulse can be yours"}</div>
         </div>
       </section>
 
       <section id="ritual" className="ritual shell">
         <p className="eyebrow">THE RITUAL</p>
-        <h2>A livestream carries the show.<br /><em>Same Sky carries presence.</em></h2>
+        <h2>Livestreams carry the show.<br /><em>Same Sky carries presence.</em></h2>
         <div className="steps">
           <article><span>01</span><div><h3>Catch what video misses</h3><p>One resized photo, a few firsthand words, and an optional on-device intensity estimate. No audio is saved.</p></div></article>
           <article><span>02</span><div><h3>Send one honest postcard</h3><p>OpenAI turns only those facts into accessible language. The person onsite reviews every word.</p></div></article>
@@ -148,8 +142,8 @@ function Landing({ onHost, onGuest, onDemo, resume, onResume }: { onHost: () => 
       </section>
 
       <footer className="footer shell">
-        <span>Built for OutsideLLMs 2026 with OpenAI + ChatGPT Sites</span>
-        <span>JamBase enrichment ready · <a href="https://www.jambase.com" rel="nofollow noreferrer" target="_blank">Powered by JamBase</a></span>
+        <span>{count ? `${count} pulses in today’s sky` : "The first pulse can be yours"}</span>
+        <span>Built for OutsideLLMs 2026 · OpenAI + ChatGPT Sites · <a href="https://www.jambase.com" rel="nofollow noreferrer" target="_blank">Powered by JamBase</a></span>
         <span>Festival prototype · not affiliated with Outside Lands</span>
       </footer>
 
