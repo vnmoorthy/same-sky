@@ -1,0 +1,26 @@
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+export const sessions = sqliteTable("sessions", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  hostToken: text("host_token").notNull(),
+  guestToken: text("guest_token"),
+  status: text("status").notNull().default("waiting"),
+  artistId: text("artist_id"),
+  artistName: text("artist_name"),
+  artistUrl: text("artist_url"),
+  stageName: text("stage_name"),
+  observation: text("observation"),
+  sensesJson: text("senses_json"),
+  photoKey: text("photo_key"),
+  photoType: text("photo_type"),
+  postcardJson: text("postcard_json"),
+  aiMode: text("ai_mode"),
+  pulseColor: text("pulse_color"),
+  pulseAt: integer("pulse_at"),
+  pulseEndsAt: integer("pulse_ends_at"),
+  demo: integer("demo", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+  expiresAt: integer("expires_at").notNull(),
+});
