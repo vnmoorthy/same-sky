@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FESTIVAL_ARTISTS, STAGES } from "../lib/artists";
 import type { Artist, Postcard, SameSkySession, Senses } from "../lib/types";
 
@@ -43,10 +44,10 @@ function timeLeft(expiresAt: number) {
 
 function Logo() {
   return (
-    <a className="brand" href="/" aria-label="Same Sky home">
+    <Link className="brand" href="/" aria-label="Same Sky home">
       <span className="brand-mark" aria-hidden="true"><i /><i /></span>
       <span>SAME SKY</span>
-    </a>
+    </Link>
   );
 }
 
@@ -571,6 +572,8 @@ export function SameSkyApp() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const join = params.get("join")?.replace(/[^a-z0-9]/gi, "").toUpperCase().slice(0, 6) ?? "";
+    // This is the intentional client-only hydration point for a shared join URL.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (join) { setInitialCode(join); setView("join"); }
     try {
       const saved = localStorage.getItem(STORAGE_KEY); if (!saved) return;
