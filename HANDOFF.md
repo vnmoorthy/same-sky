@@ -41,9 +41,9 @@ Core positioning: **Livestreams transmit video. Same Sky transmits presence.**
 Current V2 production release:
 
 ```text
-source commit: 2fa379e4e69fe71dda2f0c256902463a8dc408c6
-Sites version: appgprj_6a6fde2966cc8191b1eb4fd89ee55783~appgver_468da8d5c51481918779f00ff439279d
-deployment: appgdep_6a6fe5efddc081918e812d8d1575d0bd
+source commit: 27c333712c32705023f70acff8be74c63129bf91
+Sites version: appgprj_6a6fde2966cc8191b1eb4fd89ee55783~appgver_20a45a0ccdcc8191ab03a0cca428e296
+deployment: appgdep_6a6fe66f3e808191b4828b41605c916f
 status: succeeded
 URL: https://same-sky-live.vnmoorthy.chatgpt.site
 ```
