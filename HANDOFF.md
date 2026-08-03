@@ -45,7 +45,14 @@ Core positioning: **Livestreams transmit video. Same Sky transmits presence.**
 
 ## Release History
 
-Current V2 production release:
+GitHub `main` (feature pack + docs polish):
+
+```text
+source commit: ef56c64 (and follow-up docs commit on push)
+URL: https://github.com/vnmoorthy/same-sky
+```
+
+Current live Sites production (still V2 visual release until Sites redeploy):
 
 ```text
 source commit: 27c333712c32705023f70acff8be74c63129bf91
@@ -55,7 +62,7 @@ status: succeeded
 URL: https://same-sky-live.vnmoorthy.chatgpt.site
 ```
 
-The first V2 publish attempt failed before release because D1 was temporarily overloaded. Retrying the same saved artifact succeeded; no code change was required.
+**Pending:** save + deploy a new Sites version from the latest `main` commit via the Codex Apps Sites connector (`sites_save_site_version` → `sites_deploy_site_version`). Cursor does not expose those MCP tools. Packaged build artifact is ready after `npm run build` + `package-site.sh`.
 
 ## Product Experience
 

@@ -24,7 +24,7 @@ real backend without camera or microphone permissions.
 | **2:01–2:10** | Hand FAR AWAY to the judge; point to **Hold to send a pulse**. | “Would you hold that button?” |
 | **2:10–2:20** | Judge completes the hold. Both clients enter the synchronized pulse. | Say only: “That sends one signal back.” |
 | **2:20–2:28** | Both screens glow; HERE vibrates; closing line appears. | **Say nothing for all eight seconds.** Let `For eight seconds, you were under the same sky.` land. |
-| **2:28–2:43** | Show completion and expiry/delete controls. | “No likes. No comments. No follower count. That one reciprocal signal was enough. Either person can delete immediately, and the entire bridge disappears within 24 hours.” |
+| **2:28–2:43** | Show completion, the anonymous shared-sky bloom, and expiry/delete controls. | “No likes. No comments. No follower count. That one reciprocal signal was enough—and it leaves only an anonymous mark on today’s shared sky. Either person can delete immediately, and the entire bridge disappears within 24 hours.” |
 | **2:43–2:55** | Brief architecture view or spoken stack; do not leave the product for long. | “OpenAI creates the accessible postcard. JamBase adds confirmed artist context. ChatGPT Sites hosts the experience; D1 and R2 hold the expiring state and resized private image. Every dependency has a demo-safe fallback.” |
 | **2:55–3:00** | Return to the shared-sky completion screen. | **“Outside Lands already brings the show everywhere. Same Sky brings one person into the feeling of being there.”** |
 
