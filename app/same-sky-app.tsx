@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FESTIVAL_ARTISTS, STAGES } from "../lib/artists";
 import type { Artist, Postcard, SameSkySession, Senses } from "../lib/types";
@@ -44,10 +43,12 @@ function timeLeft(expiresAt: number) {
 
 function Logo() {
   return (
-    <Link className="brand" href="/" aria-label="Same Sky home">
+    // vinext currently duplicates React when optimizing next/link in development.
+    // eslint-disable-next-line @next/next/no-html-link-for-pages
+    <a className="brand" href="/" aria-label="Same Sky home">
       <span className="brand-mark" aria-hidden="true"><i /><i /></span>
       <span>SAME SKY</span>
-    </Link>
+    </a>
   );
 }
 
